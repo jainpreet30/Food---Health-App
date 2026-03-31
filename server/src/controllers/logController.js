@@ -21,10 +21,10 @@ exports.addMeal = async (req, res) => {
 
   try {
     const today = new Date().setHours(0, 0, 0, 0);
-    let log = await DailyLogModel.findOne({ userId: req.user.id, date: today });
+    let log = await DailyLog.findOne({ userId: req.user.id, date: today });
 
     if (!log) {
-      log = new DailyLogModel({ userId: req.user.id, date: today });
+      log = new DailyLog({ userId: req.user.id, date: today });
     }
 
     if (log.meals[type]) {
@@ -48,7 +48,7 @@ exports.getDailyLog = async (req, res) => {
   const date = new Date(dateStr).setHours(0, 0, 0, 0);
 
   try {
-    const log = await DailyLogModel.findOne({ userId: req.user.id, date });
+    const log = await DailyLog.findOne({ userId: req.user.id, date });
     if (log) {
       res.json(log);
     } else {
@@ -67,10 +67,10 @@ exports.updateWaterIntake = async (req, res) => {
 
   try {
     const today = new Date().setHours(0, 0, 0, 0);
-    let log = await DailyLogModel.findOne({ userId: req.user.id, date: today });
+    let log = await DailyLog.findOne({ userId: req.user.id, date: today });
 
     if (!log) {
-      log = new DailyLogModel({ userId: req.user.id, date: today });
+      log = new DailyLog({ userId: req.user.id, date: today });
     }
 
     log.waterIntake += Number(amount);

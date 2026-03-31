@@ -17,16 +17,21 @@ exports.updateProfile = async (req, res) => {
       const { height, weight, age, gender, activityLevel, goal } = user.profile;
       
       if (height && weight && age && gender) {
+        // Convert string inputs to Numbers
+        const numHeight = Number(height);
+        const numWeight = Number(weight);
+        const numAge = Number(age);
+
         // BMI Calculation
-        const heightMeters = height / 100;
-        user.metrics.bmi = (weight / (heightMeters * heightMeters)).toFixed(1);
+        const heightMeters = numHeight / 100;
+        user.metrics.bmi = (numWeight / (heightMeters * heightMeters)).toFixed(1);
 
         // BMR (Mifflin-St Jeor Equation)
         let bmr;
         if (gender === 'male') {
-          bmr = (10 * weight) + (6.25 * height) - (5 * age) + 5;
+          bmr = (10 * numWeight) + (6.25 * numHeight) - (5 * numAge) + 5;
         } else {
-          bmr = (10 * weight) + (6.25 * height) - (5 * age) - 161;
+          bmr = (10 * numWeight) + (6.25 * numHeight) - (5 * numAge) - 161;
         }
 
         // Activity Multiplier
