@@ -16,12 +16,11 @@ exports.updateProfile = async (req, res) => {
       // Calculate Metrics (BMI, TDEE)
       const { height, weight, age, gender, activityLevel, goal } = user.profile;
       
-      if (height && weight && age && gender) {
-        // Convert string inputs to Numbers
-        const numHeight = Number(height);
-        const numWeight = Number(weight);
-        const numAge = Number(age);
+      const numHeight = Number(height);
+      const numWeight = Number(weight);
+      const numAge = Number(age);
 
+      if (numHeight > 0 && numWeight > 0 && numAge > 0 && gender) {
         // BMI Calculation
         const heightMeters = numHeight / 100;
         user.metrics.bmi = (numWeight / (heightMeters * heightMeters)).toFixed(1);
@@ -57,6 +56,16 @@ exports.updateProfile = async (req, res) => {
           protein: Math.round((targetCals * 0.3) / 4),
           carbs: Math.round((targetCals * 0.4) / 4),
           fats: Math.round((targetCals * 0.3) / 9),
+        };
+      } else {
+        // Safe default metrics to prevent negative displays
+        user.metrics.bmi = 0;
+        user.metrics.tdee = 2000;
+        user.metrics.targetCalories = 2000;
+        user.metrics.targetMacros = {
+          protein: 150,
+          carbs: 200,
+          fats: 65,
         };
       }
 

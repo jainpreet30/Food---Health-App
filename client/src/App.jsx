@@ -8,6 +8,7 @@ import Register from './pages/Register';
 import Onboarding from './pages/Onboarding';
 import Meals from './pages/Meals';
 import Workout from './pages/Workout';
+import Profile from './pages/Profile';
 
 const PrivateRoute = ({ children, withLayout = true }) => {
   const { user, loading } = useAuth();
@@ -29,7 +30,7 @@ const App = () => {
           <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
           <Route path="/meals" element={<PrivateRoute><Meals /></PrivateRoute>} />
           <Route path="/workout" element={<PrivateRoute><Workout /></PrivateRoute>} />
-          <Route path="/profile" element={<PrivateRoute><div>Profile Page Coming Soon</div></PrivateRoute>} />
+          <Route path="/profile" element={<PrivateRoute><Profile /></PrivateRoute>} />
         </Routes>
       </AuthProvider>
     </Router>

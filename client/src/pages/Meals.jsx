@@ -24,7 +24,7 @@ const Meals = () => {
     if (!searchQuery) return;
     setIsSearching(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = user?.token;
       const { data } = await axios.get(`http://localhost:5000/api/logs/search?query=${searchQuery}`, {
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -39,7 +39,7 @@ const Meals = () => {
   const handleAISuggestion = async () => {
     setLoadingAI(true);
     try {
-      const token = localStorage.getItem('token');
+      const token = user?.token;
       const { data } = await axios.post('http://localhost:5000/api/ai/suggest-meal', {
         mealType: activeTab
       }, {
@@ -55,7 +55,7 @@ const Meals = () => {
 
   const logMeal = async (meal) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = user?.token;
       await axios.post('http://localhost:5000/api/logs/meal', {
         type: activeTab,
         meal: {

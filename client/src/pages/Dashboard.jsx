@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../context/AuthContext';
+import { Link } from 'react-router-dom';
 import { PieChart, Pie, Cell, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip } from 'recharts';
 import { Droplets, Flame, Target, Utensils, Plus, Zap } from 'lucide-react';
 import { cn } from '../lib/utils';
@@ -48,6 +49,17 @@ const Dashboard = () => {
     fetchLog();
   }, []);
 
+  const logWater = async () => {
+    try {
+      const { data } = await axios.put('http://localhost:5000/api/logs/water', { amount: 250 }, {
+        headers: { Authorization: `Bearer ${user?.token}` }
+      });
+      setDailyLog(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const data = [
     { name: 'Consumed', value: dailyLog?.totalCalories || 0, color: '#fbbf24' },
     { name: 'Remaining', value: Math.max(0, (user?.metrics?.targetCalories || 2000) - (dailyLog?.totalCalories || 0)), color: '#1f2937' },
@@ -67,9 +79,9 @@ const Dashboard = () => {
           <p className="text-gray-400 text-lg">Today is a great day to crush your health goals.</p>
         </div>
         <div className="flex gap-3">
-          <button className="glass-pill px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
+          <Link to="/meals" className="glass-pill px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
             <Plus size={20} className="text-primary" /> Log Food
-          </button>
+          </Link>
           <button className="bg-primary text-dark font-black px-8 py-3 rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
             AI COACH
           </button>
@@ -89,9 +101,9 @@ const Dashboard = () => {
 
         {/* Water Intake */}
         <StatCard title="Hydration" value={(dailyLog?.waterIntake || 0) / 1000} target={3} unit="L" icon={Droplets} color="bg-blue-400">
-          <div className="mt-4 flex gap-1">
+          <div className="mt-4 flex gap-1 cursor-pointer" onClick={logWater}>
              {[1,2,3,4,5,6,7,8].map(i => (
-               <div key={i} className={cn("h-8 flex-1 rounded-lg", i <= (dailyLog?.waterIntake || 0) / 250 ? "bg-blue-500" : "bg-white/5")} />
+               <div key={i} className={cn("h-8 flex-1 rounded-lg transition-colors hover:bg-blue-300", i <= (dailyLog?.waterIntake || 0) / 250 ? "bg-blue-500" : "bg-white/5")} />
              ))}
           </div>
         </StatCard>
@@ -111,7 +123,7 @@ const Dashboard = () => {
               <div key={macro} className="space-y-3">
                 <div className="flex justify-between text-sm font-bold uppercase tracking-wider text-gray-400">
                   <span>{macro}</span>
-                  <span>{dailyLog?.totalMacros[macro] || 0}g / {user?.metrics?.targetMacros[macro] || 150}g</span>
+                  <span>{dailyLog?.totalMacros?.[macro] || 0}g / {user?.metrics?.targetMacros?.[macro] || 150}g</span>
                 </div>
                 <div className="h-3 w-full bg-white/5 rounded-full overflow-hidden">
                   <div 
@@ -119,7 +131,7 @@ const Dashboard = () => {
                       "h-full rounded-full transition-all duration-1000",
                       macro === 'protein' ? "bg-emerald-400" : macro === 'carbs' ? "bg-blue-400" : "bg-primary"
                     )}
-                    style={{ width: `${Math.min(100, ((dailyLog?.totalMacros[macro] || 0) / (user?.metrics?.targetMacros[macro] || 150)) * 100)}%` }}
+                    style={{ width: `${Math.min(100, ((dailyLog?.totalMacros?.[macro] || 0) / (user?.metrics?.targetMacros?.[macro] || 150)) * 100)}%` }}
                   />
                 </div>
               </div>
