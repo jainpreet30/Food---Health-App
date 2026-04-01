@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { LayoutDashboard, Utensils, Activity, User, LogOut, Menu, X } from 'lucide-react';
+import { LayoutDashboard, Utensils, Activity, User, LogOut, Menu, X, Sparkles } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 const Navbar = () => {
@@ -14,6 +14,7 @@ const Navbar = () => {
     { name: 'Dashboard', path: '/', icon: LayoutDashboard },
     { name: 'Meals', path: '/meals', icon: Utensils },
     { name: 'Workout', path: '/workout', icon: Activity },
+    { name: 'Coach', path: '/coach', icon: Sparkles },
     { name: 'Profile', path: '/profile', icon: User },
   ];
 

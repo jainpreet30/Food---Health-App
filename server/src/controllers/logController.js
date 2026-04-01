@@ -111,7 +111,7 @@ exports.updateWaterIntake = async (req, res) => {
       log = new DailyLog({ userId: req.user.id, date: today });
     }
 
-    log.waterIntake += Number(amount);
+    log.waterIntake = Math.max(0, log.waterIntake + Number(amount));
     const updatedLog = await log.save();
     res.json(updatedLog);
   } catch (err) {

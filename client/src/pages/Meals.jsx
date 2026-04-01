@@ -12,6 +12,22 @@ const Meals = () => {
   const [aiSuggestion, setAiSuggestion] = useState(null);
   const [loadingAI, setLoadingAI] = useState(false);
   const [isSearching, setIsSearching] = useState(false);
+  const [dailyLog, setDailyLog] = useState(null);
+
+  const fetchLog = async () => {
+    try {
+      const { data } = await axios.get('http://localhost:5000/api/logs/daily', {
+        headers: { Authorization: `Bearer ${user?.token}` }
+      });
+      setDailyLog(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  React.useEffect(() => {
+    fetchLog();
+  }, []);
   
   const mealTypes = [
     { id: 'breakfast', label: 'Breakfast', icon: '🍳' },
@@ -74,6 +90,7 @@ const Meals = () => {
       setAiSuggestion(null);
       setSearchResults([]);
       setSearchQuery('');
+      fetchLog();
     } catch (err) {
       console.error(err);
     }
@@ -194,13 +211,29 @@ const Meals = () => {
             )}
           </div>
           
-          <div className="glass p-8 rounded-[2.5rem] flex-1">
+          <div className="glass p-8 rounded-[2.5rem] flex-1 flex flex-col">
              <h2 className="text-2xl font-black mb-4 flex items-center gap-3">
                <Utensils className="text-gray-600" /> Daily Breakdown
              </h2>
-             <div className="flex items-center justify-center h-48 border-2 border-dashed border-white/5 rounded-3xl">
-                <p className="text-gray-600 font-bold uppercase tracking-widest text-xs">Morning log pending</p>
-             </div>
+             {dailyLog?.meals?.[activeTab]?.length > 0 ? (
+               <div className="space-y-4 overflow-y-auto max-h-[300px] pr-2">
+                 {dailyLog.meals[activeTab].map((meal, idx) => (
+                   <div key={idx} className="flex justify-between items-center bg-white/5 p-4 rounded-2xl">
+                     <div>
+                       <p className="font-bold">{meal.name}</p>
+                       <p className="text-xs text-gray-400">{meal.calories} kcal</p>
+                     </div>
+                     <div className="text-[10px] font-black uppercase tracking-widest text-primary">
+                       {meal.macros?.protein || 0}g P
+                     </div>
+                   </div>
+                 ))}
+               </div>
+             ) : (
+               <div className="flex-1 flex items-center justify-center p-8 border-2 border-dashed border-white/5 rounded-3xl">
+                  <p className="text-gray-600 font-bold uppercase tracking-widest text-xs text-center">No {activeTab} logged yet</p>
+               </div>
+             )}
           </div>
         </div>
 

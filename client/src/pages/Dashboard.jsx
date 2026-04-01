@@ -60,6 +60,19 @@ const Dashboard = () => {
     }
   };
 
+  const resetWater = async (e) => {
+    e.stopPropagation();
+    if ((dailyLog?.waterIntake || 0) <= 0) return;
+    try {
+      const { data } = await axios.put('http://localhost:5000/api/logs/water', { amount: -250 }, {
+        headers: { Authorization: `Bearer ${user?.token}` }
+      });
+      setDailyLog(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   const data = [
     { name: 'Consumed', value: dailyLog?.totalCalories || 0, color: '#fbbf24' },
     { name: 'Remaining', value: Math.max(0, (user?.metrics?.targetCalories || 2000) - (dailyLog?.totalCalories || 0)), color: '#1f2937' },
@@ -82,9 +95,9 @@ const Dashboard = () => {
           <Link to="/meals" className="glass-pill px-6 py-3 rounded-2xl font-bold flex items-center gap-2 hover:bg-white/10 transition-all">
             <Plus size={20} className="text-primary" /> Log Food
           </Link>
-          <button className="bg-primary text-dark font-black px-8 py-3 rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
+          <Link to="/coach" className="bg-primary text-dark font-black px-8 py-3 rounded-2xl hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20 flex items-center justify-center">
             AI COACH
-          </button>
+          </Link>
         </div>
       </header>
 
@@ -106,6 +119,9 @@ const Dashboard = () => {
                <div key={i} className={cn("h-8 flex-1 rounded-lg transition-colors hover:bg-blue-300", i <= (dailyLog?.waterIntake || 0) / 250 ? "bg-blue-500" : "bg-white/5")} />
              ))}
           </div>
+          {(dailyLog?.waterIntake || 0) > 0 && (
+            <button onClick={resetWater} className="mt-2 text-xs font-bold text-gray-400 hover:text-white transition-colors">Undo last glass</button>
+          )}
         </StatCard>
 
         {/* Exercise */}
@@ -144,9 +160,9 @@ const Dashboard = () => {
           <Target className="text-gray-700" size={64} />
           <h3 className="text-xl font-black">Progress Tracking</h3>
           <p className="text-gray-500 text-sm">Weight trends will appear here as you log daily data.</p>
-          <button className="glass-pill px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors">
+          <Link to="/profile" className="glass-pill px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors">
             Set Goal
-          </button>
+          </Link>
         </div>
       </div>
     </div>
