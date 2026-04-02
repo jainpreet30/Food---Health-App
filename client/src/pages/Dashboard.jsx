@@ -35,13 +35,18 @@ const Dashboard = () => {
   const [dailyLog, setDailyLog] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const [streakData, setStreakData] = useState({ currentStreak: 0, history: [false,false,false,false,false,false,false] });
+
   useEffect(() => {
     const fetchLog = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/logs/daily');
-        setDailyLog(data);
+        const { data: dailyData } = await axios.get('http://localhost:5000/api/logs/daily', { headers: { Authorization: `Bearer ${user?.token}` } });
+        setDailyLog(dailyData);
+        
+        const { data: streakRes } = await axios.get('http://localhost:5000/api/logs/streak', { headers: { Authorization: `Bearer ${user?.token}` } });
+        setStreakData(streakRes);
       } catch (err) {
-        console.error("Log not found, expected for new day.");
+        console.error("Log not found, expected for new day.", err);
       } finally {
         setLoading(false);
       }
@@ -151,14 +156,41 @@ const Dashboard = () => {
           </div>
         </div>
 
-        {/* Weight Trend Placeholder (Post-MVP) */}
-        <div className="glass p-8 rounded-[2.5rem] flex flex-col justify-center items-center text-center space-y-4">
-          <Target className="text-gray-700" size={64} />
-          <h3 className="text-xl font-black">Progress Tracking</h3>
-          <p className="text-gray-500 text-sm">Weight trends will appear here as you log daily data.</p>
-          <Link to="/profile" className="glass-pill px-6 py-2 rounded-xl text-xs font-bold uppercase tracking-widest text-gray-400 hover:text-white transition-colors">
-            Set Goal
-          </Link>
+        {/* Consistency & BMI Sidebar */}
+        <div className="flex flex-col gap-6">
+            
+          {/* Consistency Streak */}
+          <div className="glass p-8 rounded-[2.5rem] flex flex-col justify-center items-center text-center space-y-3 relative overflow-hidden group">
+             <div className="absolute top-0 right-0 w-24 h-24 bg-orange-500/20 rounded-full blur-[40px] -mr-4 -mt-4"></div>
+             <Flame className="text-orange-500 animate-pulse" size={48} />
+             <div className="space-y-1">
+                 <h3 className="text-4xl font-black gradient-text">{streakData.currentStreak} {streakData.currentStreak === 1 ? 'Day' : 'Days'}</h3>
+                 <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Consistency Streak</p>
+             </div>
+             <div className="flex gap-2 mt-2">
+                 {['M','T','W','T','F','S','S'].map((day, i) => (
+                    <div key={i} className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold ${streakData.history[i] ? 'bg-orange-500 text-dark' : 'bg-white/5 text-gray-500'}`}>
+                        {day}
+                    </div>
+                 ))}
+             </div>
+          </div>
+
+          {/* BMI Tracker */}
+          <div className="glass p-8 rounded-[2.5rem] flex flex-col justify-center items-center text-center space-y-2 relative overflow-hidden">
+             <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-blue-400 via-primary to-orange-500 opacity-50"></div>
+             <Target className="text-primary mb-2" size={32} />
+             <div className="space-y-0">
+                 <h3 className="text-3xl font-black">{user?.metrics?.bmi ? user.metrics.bmi.toFixed(1) : '--'}</h3>
+                 <p className="text-gray-400 text-sm font-bold uppercase tracking-widest">Current BMI</p>
+             </div>
+             {user?.metrics?.bmi && (
+                 <p className="text-xs font-bold mt-2 px-3 py-1 glass-pill rounded-full text-emerald-400">
+                     {user.metrics.bmi >= 18.5 && user.metrics.bmi <= 24.9 ? "Perfectly Healthy" : "Keep working on your goals!"}
+                 </p>
+             )}
+          </div>
+          
         </div>
       </div>
     </div>

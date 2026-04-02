@@ -158,3 +158,99 @@ exports.addExercise = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// @desc    Delete food entry
+// @route   DELETE /api/logs/meal/:type/:index
+// @access  Private
+exports.deleteMeal = async (req, res) => {
+  const { type, index } = req.params;
+
+  try {
+    const today = new Date().setHours(0, 0, 0, 0);
+    let log = await DailyLog.findOne({ userId: req.user.id, date: today });
+
+    if (!log) {
+      return res.status(404).json({ message: 'Log not found' });
+    }
+
+    if (log.meals[type] && log.meals[type].length > index) {
+      log.meals[type].splice(index, 1);
+      const updatedLog = await log.save();
+      return res.json(updatedLog);
+    } else {
+      return res.status(400).json({ message: 'Invalid meal type or index' });
+    }
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc    Get consistency streak
+// @route   GET /api/logs/streak
+// @access  Private
+exports.getStreakData = async (req, res) => {
+  try {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    const last7Days = [];
+    for (let i = 6; i >= 0; i--) {
+        const d = new Date(today);
+        d.setDate(today.getDate() - i);
+        last7Days.push(d.getTime());
+    }
+
+    const logs = await DailyLog.find({ 
+        userId: req.user.id, 
+        date: { $in: last7Days }
+    });
+
+    const activeMap = {};
+    logs.forEach(log => {
+        const hasMeals = log.meals && (log.meals.breakfast.length > 0 || log.meals.lunch.length > 0 || log.meals.dinner.length > 0 || log.meals.snacks.length > 0);
+        const hasExercise = log.exercise && log.exercise.length > 0;
+        const hasWater = log.waterIntake > 0;
+        if (hasMeals || hasExercise || hasWater) activeMap[log.date.getTime()] = true;
+    });
+
+    const history = last7Days.map(time => !!activeMap[time]);
+
+    let currentStreak = 0;
+    const allRecentLogs = await DailyLog.find({ userId: req.user.id }).sort({ date: -1 }).limit(365);
+    
+    let expectedDate = today.getTime();
+    let isFirst = true;
+
+    for (let log of allRecentLogs) {
+        const hasMeals = log.meals && (log.meals.breakfast.length > 0 || log.meals.lunch.length > 0 || log.meals.dinner.length > 0 || log.meals.snacks.length > 0);
+        const hasExercise = log.exercise && log.exercise.length > 0;
+        const hasWater = log.waterIntake > 0;
+        
+        if (!(hasMeals || hasExercise || hasWater)) continue; 
+
+        const logTime = log.date.getTime();
+        
+        if (isFirst) {
+             if (logTime === expectedDate || logTime === expectedDate - 86400000) {
+                 currentStreak++;
+                 expectedDate = logTime - 86400000;
+             } else {
+                 break;
+             }
+             isFirst = false;
+        } else {
+             if (logTime === expectedDate) {
+                 currentStreak++;
+                 expectedDate = logTime - 86400000;
+             } else {
+                 break;
+             }
+        }
+    }
+
+    res.json({ currentStreak, history });
+
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
