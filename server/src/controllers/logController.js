@@ -101,7 +101,7 @@ exports.getDailyLog = async (req, res) => {
 // @route   PUT /api/logs/water
 // @access  Private
 exports.updateWaterIntake = async (req, res) => {
-  const { amount } = req.body; // amount in ml
+  const { amount, absolute } = req.body; // amount in ml
 
   try {
     const today = new Date().setHours(0, 0, 0, 0);
@@ -111,7 +111,11 @@ exports.updateWaterIntake = async (req, res) => {
       log = new DailyLog({ userId: req.user.id, date: today });
     }
 
-    log.waterIntake = Math.max(0, log.waterIntake + Number(amount));
+    if (absolute) {
+      log.waterIntake = Math.max(0, Number(amount));
+    } else {
+      log.waterIntake = Math.max(0, log.waterIntake + Number(amount));
+    }
     const updatedLog = await log.save();
     res.json(updatedLog);
   } catch (err) {

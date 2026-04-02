@@ -50,6 +50,9 @@ const userSchema = new mongoose.Schema({
       carbs: Number,
       fats: Number,
     },
+    weeklyDietPlan: {
+      type: mongoose.Schema.Types.Mixed
+    }
   },
   createdAt: {
     type: Date,

@@ -42,3 +42,64 @@ exports.suggestMeal = async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 };
+
+// @desc    Get current weekly plan
+// @route   GET /api/ai/weekly-plan
+// @access  Private
+exports.getWeeklyPlan = async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id);
+    if (!user.metrics || !user.metrics.weeklyDietPlan) {
+      return res.json(null);
+    }
+    res.json(user.metrics.weeklyDietPlan);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};
+
+// @desc    Generate new weekly plan based on profile
+// @route   POST /api/ai/weekly-plan
+// @access  Private
+exports.generateWeeklyPlan = async (req, res) => {
+  try {
+    // Artificial 2-second delay to mimic AI thinking
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    const user = await User.findById(req.user.id);
+
+    const plan = [];
+    
+    // Pick daily variations randomly from mock database safely ensuring full week 
+    for(let i=1; i<=7; i++) {
+        const breakFastItem = MOCK_MEALS.breakfast[Math.floor(Math.random() * MOCK_MEALS.breakfast.length)];
+        const lunchItem = MOCK_MEALS.lunch[Math.floor(Math.random() * MOCK_MEALS.lunch.length)];
+        const dinnerItem = MOCK_MEALS.dinner[Math.floor(Math.random() * MOCK_MEALS.dinner.length)];
+        const snackItem = MOCK_MEALS.snacks[Math.floor(Math.random() * MOCK_MEALS.snacks.length)];
+        
+        const totalCal = breakFastItem.calories + lunchItem.calories + dinnerItem.calories + snackItem.calories;
+
+        plan.push({
+            day: i,
+            totalCaloriesExpected: totalCal,
+            meals: {
+                breakfast: breakFastItem,
+                lunch: lunchItem,
+                dinner: dinnerItem,
+                snacks: snackItem
+            }
+        });
+    }
+
+    if (!user.metrics) user.metrics = {};
+    user.metrics.weeklyDietPlan = plan;
+    
+    // Disable password hashing trigger if password hasn't been changed
+    const userDoc = await User.findByIdAndUpdate(req.user.id, {
+        $set: { 'metrics.weeklyDietPlan': plan }
+    }, { new: true });
+
+    res.json(plan);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+};

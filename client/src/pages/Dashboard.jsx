@@ -49,22 +49,9 @@ const Dashboard = () => {
     fetchLog();
   }, []);
 
-  const logWater = async () => {
+  const setWater = async (amount) => {
     try {
-      const { data } = await axios.put('http://localhost:5000/api/logs/water', { amount: 250 }, {
-        headers: { Authorization: `Bearer ${user?.token}` }
-      });
-      setDailyLog(data);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const resetWater = async (e) => {
-    e.stopPropagation();
-    if ((dailyLog?.waterIntake || 0) <= 0) return;
-    try {
-      const { data } = await axios.put('http://localhost:5000/api/logs/water', { amount: -250 }, {
+      const { data } = await axios.put('http://localhost:5000/api/logs/water', { amount, absolute: true }, {
         headers: { Authorization: `Bearer ${user?.token}` }
       });
       setDailyLog(data);
@@ -114,14 +101,23 @@ const Dashboard = () => {
 
         {/* Water Intake */}
         <StatCard title="Hydration" value={(dailyLog?.waterIntake || 0) / 1000} target={3} unit="L" icon={Droplets} color="bg-blue-400">
-          <div className="mt-4 flex gap-1 cursor-pointer" onClick={logWater}>
-             {[1,2,3,4,5,6,7,8].map(i => (
-               <div key={i} className={cn("h-8 flex-1 rounded-lg transition-colors hover:bg-blue-300", i <= (dailyLog?.waterIntake || 0) / 250 ? "bg-blue-500" : "bg-white/5")} />
-             ))}
+          <div className="mt-4 flex gap-1 cursor-pointer">
+             {Array.from({ length: 12 }, (_, i) => i + 1).map(i => {
+               const glassAmount = i * 250;
+               const isFilled = glassAmount <= (dailyLog?.waterIntake || 0);
+               return (
+                 <div 
+                   key={i} 
+                   onClick={() => setWater(glassAmount)}
+                   className={cn(
+                     "h-8 flex-1 rounded-lg transition-all duration-300 hover:bg-blue-300 transform hover:-translate-y-1", 
+                     isFilled ? "bg-blue-500 shadow-[0_0_10px_rgba(59,130,246,0.5)]" : "bg-white/5"
+                   )} 
+                 />
+               );
+             })}
           </div>
-          {(dailyLog?.waterIntake || 0) > 0 && (
-            <button onClick={resetWater} className="mt-2 text-xs font-bold text-gray-400 hover:text-white transition-colors">Undo last glass</button>
-          )}
+          <p className="mt-3 text-xs font-bold text-gray-500 text-center">Tap a glass to set your intake</p>
         </StatCard>
 
         {/* Exercise */}

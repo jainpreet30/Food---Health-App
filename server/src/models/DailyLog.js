@@ -61,26 +61,25 @@ const dailyLogSchema = new mongoose.Schema({
 });
 
 // Middleware to calculate totals before saving
-dailyLogSchema.pre('save', function (next) {
+dailyLogSchema.pre('save', function () {
   let protein = 0, carbs = 0, fats = 0, cals = 0;
   
   const allMeals = [
-    ...this.meals.breakfast,
-    ...this.meals.lunch,
-    ...this.meals.dinner,
-    ...this.meals.snacks
+    ...(this.meals?.breakfast || []),
+    ...(this.meals?.lunch || []),
+    ...(this.meals?.dinner || []),
+    ...(this.meals?.snacks || [])
   ];
   
   allMeals.forEach(meal => {
-    protein += meal.macros.protein || 0;
-    carbs += meal.macros.carbs || 0;
-    fats += meal.macros.fats || 0;
+    protein += meal.macros?.protein || 0;
+    carbs += meal.macros?.carbs || 0;
+    fats += meal.macros?.fats || 0;
     cals += meal.calories || 0;
   });
   
   this.totalMacros = { protein, carbs, fats };
   this.totalCalories = cals;
-  next();
 });
 
 module.exports = mongoose.model('DailyLog', dailyLogSchema);
